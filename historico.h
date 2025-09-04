@@ -7,7 +7,7 @@
     bool historico_vazio(HISTORICO *historico);
     bool historico_addprocedimento(HISTORICO *historico, ITEM *procedimento);
     ITEM* historico_removeprocedimento(HISTORICO *historico);
-    ITEM* historico_seeprocedimento(HISTORICO *historico);
-
+    void historico_imprimir(HISTORICO *historico);
+    void historico_apagar(HISTORICO **historico);
 
     
