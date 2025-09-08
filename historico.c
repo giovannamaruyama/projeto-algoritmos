@@ -49,8 +49,9 @@
 
     void historico_imprimir(HISTORICO *historico){
         if((historico != NULL) && (!historico_vazio(historico))){
+            printf("Histórico de procedimentos do paciente:\n");
             for(int i = 0; i < historico->tamanho; i++){
-                
+                printf("%s \n", item[i]);
             }
         }
 
