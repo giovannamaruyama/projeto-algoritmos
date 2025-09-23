@@ -63,6 +63,13 @@
     }
     }
 
+    ITEM* historico_consultar_ultimo(HISTORICO *historico){
+        if((historico != NULL) && (!historico_vazio(historico))){
+            return(historico->item[historico->tamanho - 1]);
+        }
+        return(NULL);
+    }
+
     void historico_apagar(HISTORICO **historico){
         if (historico != NULL && *historico != NULL) {
         HISTORICO *h = *historico;
