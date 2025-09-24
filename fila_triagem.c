@@ -19,7 +19,7 @@ int fila_cheia(FilaTriagem *fila) {
 }
 
 
-int inserir_paciente_fila(FilaTriagem *fila, Paciente paciente) {
+int inserir_paciente_fila(FilaTriagem *fila, Paciente paciente) { 
     if (filaCheia(fila)) {
         return 0;
     }
