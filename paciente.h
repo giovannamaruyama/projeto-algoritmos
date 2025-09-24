@@ -5,8 +5,7 @@
 typedef struct {
     int id; // ou string?
     char nome[100];
-    // seria bom colocar a pilha de historico aqui
-    // PilhaHistorico *historico;
+    HISTORICO *historico;
 } Paciente;
 
 
