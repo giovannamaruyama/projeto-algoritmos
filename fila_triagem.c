@@ -1,6 +1,16 @@
 #include "fila_triagem.h"
+#include "paciente.h"
 #include <stdio.h>
 
+
+#define TAMANHO_FILA 50 
+
+typedef struct fila{
+    Paciente pacientes[TAMANHO_FILA];
+    int inicio;
+    int fim;
+    int quantidade;
+};
 
 void inicia_fila(FilaTriagem *fila) {
     fila->inicio = 0;

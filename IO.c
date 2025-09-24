@@ -86,3 +86,54 @@ bool LOAD(LISTA **lista, FILA **fila) {
 
     return true;
 }
+
+/* bool SAVE(LISTA *lista, FIlaTriagem *fila) {
+    if(!lista || !fila) 
+        return false;
+    
+    ITEM *it; // Variável auxiliar  //mudar tipo
+    //Paciente *paciente;
+
+    // Salvando os itens da lista
+
+    FILE *fp_lista = fopen("lista_itens.bin", "wb");
+    if(!fp_lista)
+        return false;
+
+    it = LISTA_remover_inicio(lista); //mudar funcao
+    int chave;
+    while(it != NULL) { // Se mantém no while enquanto a lista não estiver vazia
+        // Escreve a chave no arquivo
+        chave = ITEM_get_chave(it);
+        fwrite(&chave, sizeof(int), 1, fp_lista);
+        // Apaga o item removido
+        ITEM_apagar(&it); //mudar funcao
+        // Atualiza a variável auxiliar
+        it = LISTA_remover_inicio(lista); //mudar funcao
+    }
+    // Libera memória
+    LISTA_apagar(&lista); //mudar funcao
+    fclose(fp_lista); fp_lista = NULL;
+
+    // Salvando os itens da fila
+
+    FILE *fp_fila = fopen("fila_itens.bin", "wb");
+    if(!fp_fila)
+        return false;
+
+    it = FIlaTriagem_remover(fila); //mudar funcao
+    while(it != NULL) { // Se mantém no while enquanto a fila não estiver vazia
+        // Escreve a chave no arquivo
+        chave = ITEM_get_chave(it); //mudar funcao
+        fwrite(&chave, sizeof(int), 1, fp_fila);
+        // Apaga o item removido
+        ITEM_apagar(&it); //mudar funcao
+        // Atualiza a variável auxiliar
+        it = FIlaTriagem_remover(fila); //mudar funcao
+    }
+    // Libera memória
+    FIlaTriagem_apagar(&fila); //mudar funcao
+    fclose(fp_fila); fp_fila = NULL;
+
+    return true;
+}*/
