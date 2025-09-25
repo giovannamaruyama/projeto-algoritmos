@@ -3,11 +3,8 @@
 
 typedef struct paciente Paciente;
 
-struct paciente {
-    int id; 
-    char nome[100];
-    // seria bom colocar a pilha de historico aqui
-    // PilhaHistorico *historico;
-};
+int get_id_paciente(Paciente *p);
+char *get_nome_paciente(Paciente *p);
+
 
 #endif

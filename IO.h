@@ -1,8 +1,8 @@
 #ifndef IO_H
 	#define IO_H
-	#include "item.h"
-    #include "fila.h"
-    #include "lista.h"
+	#include "item.h" //paciente.h
+    #include "fila.h" //fila_triagem.h
+    #include "lista.h" //
     #include <stdbool.h>
 
     bool SAVE(LISTA *lista, FILA *fila); // Salva os itens da lista e da fila em arquivos

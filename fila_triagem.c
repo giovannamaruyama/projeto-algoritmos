@@ -1,5 +1,5 @@
 #include "fila_triagem.h"
-#include "paciente.h"
+#include "paciente.c"
 #include <stdio.h>
 
 
@@ -71,6 +71,12 @@ void mostrar_fila(FilaTriagem *fila) {
     }
 }
 
+void apagar_fila(FilaTriagem **fila) {
+    if(fila != NULL && *fila != NULL) {
+        free(*fila);
+        *fila = NULL;
+    }
+}
 
 void salvarFila(FilaTriagem *fila) {
     // usar arquivos
