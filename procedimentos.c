@@ -6,7 +6,7 @@
 #define MAX_PROC 100
 #define MAX_DATA 11   // "dd/mm/aaaa" + '\0'
 
-struct procedimento_ {
+struct procedimento_{
     char nome[MAX_PROC];
     char data[MAX_DATA];
 };

@@ -2,6 +2,7 @@
 #define HISTORICO_H
 
 #include <stdbool.h>
+#include "procedimentos.h"
     typedef struct historico_ HISTORICO;
 
     HISTORICO* historico_criar(int paciente_id, const char *paciente_nome);
