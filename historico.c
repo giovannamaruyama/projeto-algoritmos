@@ -13,9 +13,9 @@ struct historico_{
     int tamanho;
 };
 
-HISTORICO* historico_criar_para_paciente(int paciente_id, const char *paciente_nome){
+HISTORICO* historico_criar(int paciente_id, const char *paciente_nome){
     HISTORICO *h = (HISTORICO*) malloc(sizeof(HISTORICO));
-    if (h){
+    if (h!=NULL){
         h->paciente_id = paciente_id;
         if (paciente_nome){
             strncpy(h->paciente_nome, paciente_nome, sizeof(h->paciente_nome)-1);
