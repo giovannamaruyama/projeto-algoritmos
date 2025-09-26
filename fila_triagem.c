@@ -2,10 +2,13 @@
 #include <stdio.h>
 
 
-void inicia_fila(FilaTriagem *fila) {
-    fila->inicio = 0;
-    fila->fim = -1;
-    fila->quantidade = 0;
+void cria_fila() {
+    FilaTriagem *fila = (FilaTriagem *)malloc(sizeof(FilaTriagem));
+    if(fila!=NULL){
+        fila->inicio = 0;
+        fila->fim = -1;
+        fila->quantidade = 0;
+    }
 }
 
 

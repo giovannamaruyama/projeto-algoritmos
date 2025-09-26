@@ -2,7 +2,7 @@
 #include "paciente.h"
 
 
-void inicia_fila(FilaTriagem *fila);
+void cria_fila();
 
 int fila_vazia(FilaTriagem *fila);
 
