@@ -39,7 +39,7 @@ fgets(nome_paciente, sizeof(nome_paciente), stdin);
 printf("Paciente registrado: %s\n", nome_paciente);
 ListaPacientes *lista = criar_lista(); //Não sei se é para criar a lista aqui!!REVISAR
 FilaTriagem *fila = cria_fila();
-while(rodando){
+while(ativo){
     acao = exibirMenuPrincipal();
     switch(acao){
         case 1: 
