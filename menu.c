@@ -33,7 +33,7 @@ int exibirMenuPrincipal() {
 int acao;
 bool ativo = true;
 
-char nome_do_paciente[100];
+char nome_paciente[100];
 printf("Digite o nome do paciente: ");
 fgets(nome_paciente, sizeof(nome_paciente), stdin);
 printf("Paciente registrado: %s\n", nome_paciente);
