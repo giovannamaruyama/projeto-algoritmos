@@ -1,20 +1,10 @@
+#ifndef PACIENTE_H
+#define PACIENTE_H
 
-#define MAX_HISTORICO 10
+typedef struct paciente Paciente;
 
-
-typedef struct {
-    int id; // ou string?
-    char nome[100];
-    // seria bom colocar a pilha de historico aqui
-    // PilhaHistorico *historico;
-} Paciente;
+int get_id_paciente(Paciente *p);
+char *get_nome_paciente(Paciente *p);
 
 
-#define TAMANHO_FILA 50 
-
-typedef struct {
-    Paciente pacientes[TAMANHO_FILA];
-    int inicio;
-    int fim;
-    int quantidade;
-} FilaTriagem;
+#endif

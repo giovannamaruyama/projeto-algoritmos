@@ -1,6 +1,16 @@
 #include "fila_triagem.h"
+#include "paciente.c"
 #include <stdio.h>
 
+
+#define TAMANHO_FILA 50 
+
+typedef struct fila{
+    Paciente pacientes[TAMANHO_FILA];
+    int inicio;
+    int fim;
+    int quantidade;
+};
 
 void inicia_fila(FilaTriagem *fila) {
     fila->inicio = 0;
@@ -19,7 +29,7 @@ int fila_cheia(FilaTriagem *fila) {
 }
 
 
-int inserir_paciente_fila(FilaTriagem *fila, Paciente paciente) {
+int inserir_paciente_fila(FilaTriagem *fila, Paciente paciente) { 
     if (filaCheia(fila)) {
         return 0;
     }
@@ -61,6 +71,12 @@ void mostrar_fila(FilaTriagem *fila) {
     }
 }
 
+void apagar_fila(FilaTriagem **fila) {
+    if(fila != NULL && *fila != NULL) {
+        free(*fila);
+        *fila = NULL;
+    }
+}
 
 void salvarFila(FilaTriagem *fila) {
     // usar arquivos
