@@ -1,7 +1,9 @@
 
 #ifndef FILA_TRIAGEM_H
 #define FILA_TRIAGEM_H
+
 #include "paciente.h"
+#define TAMANHO_FILA 50 
 
 typedef struct fila FilaTriagem;
 
@@ -19,7 +21,5 @@ void mostrar_fila(FilaTriagem *fila);
 
 void apagar_fila(FilaTriagem **fila);
 
-void salvar_fila(FilaTriagem *fila);
-void carregar_fila(FilaTriagem *fila);  
 
 #endif

@@ -1,3 +1,6 @@
+#include "fila_triagem.h"
+#include "historico.h"
+#include "lista_pacientes.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,4 +30,26 @@ int exibirMenuPrincipal() {
     return opcao;
 }
 
+<<<<<<< HEAD
+=======
+int acao;
+bool ativo = true;
+
+char nome_paciente[100];
+printf("Digite o nome do paciente: ");
+fgets(nome_paciente, sizeof(nome_paciente), stdin);
+printf("Paciente registrado: %s\n", nome_paciente);
+ListaPacientes *lista = criar_lista(); //Não sei se é para criar a lista aqui!!REVISAR
+FilaTriagem *fila = cria_fila();
+while(ativo){
+    acao = exibirMenuPrincipal();
+    switch(acao){
+        case 1: 
+        printf("Registrar paciente\n");
+        if()
+            
+        
+    }
+}
+>>>>>>> dff17177f46ac564fd364d6261685ed5e2bff87d
 

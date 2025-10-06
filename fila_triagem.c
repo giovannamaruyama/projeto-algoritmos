@@ -2,9 +2,6 @@
 #include "paciente.c"
 #include <stdio.h>
 
-
-#define TAMANHO_FILA 50 
-
 typedef struct fila{
     Paciente pacientes[TAMANHO_FILA];
     int inicio;
@@ -78,10 +75,3 @@ void apagar_fila(FilaTriagem **fila) {
     }
 }
 
-void salvarFila(FilaTriagem *fila) {
-    // usar arquivos
-}
-
-void carregarFila(FilaTriagem *fila) {
-    // usar arquivos
-}
