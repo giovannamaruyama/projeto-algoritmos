@@ -4,17 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "IO.h"
-#include "fila_triagem.h"
-#include "paciente.h"
-#include "lista_pacientes.h"
-#include "historico.h"
+#include "fila_triagem.c" // n entendi pq o .h da erro
+#include "paciente.c"
+#include "lista_pacientes.c"
+#include "historico.c"
 
-// =================================================================
-// FUNÇÕES ASSUMIDAS (DEVEM SER IMPLEMENTADAS EM OUTROS .C):
-// - bool procedimento_save(FILE *fp, PROCEDIMENTO *p);
-// - PROCEDIMENTO* procedimento_load(FILE *fp);
-// - Paciente* buscar_paciente_por_id(ListaPacientes *lista, int id);
-// =================================================================
+
 
 bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
     if(!lista || !fila)
@@ -94,7 +89,8 @@ bool LOAD(ListaPacientes **lista_ptr, FilaTriagem **fila_ptr, HISTORICO **histor
         if (paciente == NULL) { fclose(fp_lista); return false; }
         paciente->id = chave;
         paciente->historico = NULL;
-        inserir_paciente(lista, paciente); 
+        inserir_paciente(lista, *paciente); 
+        free(paciente);
     }
     fclose(fp_lista); 
 

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lista_pacientes.h"
-#include "paciente.h"
+#include "paciente.c"// tem q ser .h aqui
 
 ListaPacientes* criar_lista() {
     ListaPacientes* lista = (ListaPacientes*) malloc(sizeof(ListaPacientes));
@@ -14,7 +14,7 @@ ListaPacientes* criar_lista() {
     return lista;
 }
 
-int inserir_paciente(ListaPacientes* lista, Paciente novo_paciente) {
+int inserir_paciente(ListaPacientes* lista, Paciente novo_paciente) { // se uso o include paciente.h, dá erro aqui. n entendi pq
     if (lista == NULL) return 0;
 
     if (buscar_paciente(lista, novo_paciente.id) != NULL) {
