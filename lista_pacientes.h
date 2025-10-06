@@ -1,7 +1,7 @@
 #ifndef LISTA_PACIENTİES_H
 #define LISTA_PACIENTES_H
 
-#include "paciente.h"
+#include "paciente.c"// a merda do erro, q boosstaaaaa
 
 typedef struct No {
     Paciente paciente;

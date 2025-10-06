@@ -1,6 +1,8 @@
 #include "fila_triagem.h"
 #include "paciente.c"
 #include <stdio.h>
+#include <stdlib.h>
+
 
 typedef struct fila{
     Paciente pacientes[TAMANHO_FILA];
@@ -9,12 +11,15 @@ typedef struct fila{
     int quantidade;
 };
 
-void inicia_fila(FilaTriagem *fila) {
-    fila->inicio = 0;
-    fila->fim = -1;
-    fila->quantidade = 0;
+FilaTriagem* cria_fila() {
+    FilaTriagem *fila = (FilaTriagem*) malloc(sizeof(FilaTriagem));
+    if (fila != NULL) {
+        fila->inicio = 0;
+        fila->fim = -1;
+        fila->quantidade = 0;
+    }
+    return fila;
 }
-
 
 int fila_vazia(FilaTriagem *fila) {
     return fila->quantidade == 0;
@@ -27,7 +32,7 @@ int fila_cheia(FilaTriagem *fila) {
 
 
 int inserir_paciente_fila(FilaTriagem *fila, Paciente paciente) { 
-    if (filaCheia(fila)) {
+    if (fila_cheia(fila)) {
         return 0;
     }
     fila->fim = (fila->fim + 1) % TAMANHO_FILA;
@@ -38,7 +43,7 @@ int inserir_paciente_fila(FilaTriagem *fila, Paciente paciente) {
 
 // verificar se a fila esta vazia antes de chamar esta funcao
 Paciente remover_paciente_fila(FilaTriagem *fila) {
-    if (filaVazia(fila)) {
+    if (fila_vazia(fila)) {
         // retorna um paciente invalido
         Paciente pacienteInvalido;
         pacienteInvalido.id = -1;
@@ -53,7 +58,7 @@ Paciente remover_paciente_fila(FilaTriagem *fila) {
 
 
 void mostrar_fila(FilaTriagem *fila) {
-    if (filaVazia(fila)) {
+    if (fila_vazia(fila)) {
         printf("A fila de espera está vazia.\n");
         return;
     }

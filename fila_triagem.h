@@ -3,11 +3,12 @@
 #define FILA_TRIAGEM_H
 
 #include "paciente.h"
+
 #define TAMANHO_FILA 50 
 
 typedef struct fila FilaTriagem;
 
-void inicia_fila(FilaTriagem *fila);
+FilaTriagem* cria_fila();
 
 int fila_vazia(FilaTriagem *fila);
 

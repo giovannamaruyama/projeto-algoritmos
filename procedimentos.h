@@ -2,6 +2,7 @@
 #define PROCEDIMENTOS_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct procedimento_ PROCEDIMENTO;
 
@@ -12,5 +13,7 @@ const char* procedimento_get_data(PROCEDIMENTO *p);
 bool procedimento_set_nome(PROCEDIMENTO *p, const char *nome);
 bool procedimento_set_data(PROCEDIMENTO *p, const char *data);
 void procedimento_imprimir(PROCEDIMENTO *p);
+bool procedimento_save(FILE *fp, PROCEDIMENTO *p) ;
+PROCEDIMENTO* procedimento_load(FILE *fp);
 
 #endif
