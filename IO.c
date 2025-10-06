@@ -1,84 +1,154 @@
+// IO.C
 
-#include "IO.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "IO.h"
 #include "fila_triagem.h"
 #include "paciente.h"
-#include "paciente.c"
+#include "lista_paciente.h"
+#include "historico.h"
 
-bool SAVE(LISTA *lista, FilaTriagem *fila) {
+// =================================================================
+// FUNÇÕES ASSUMIDAS (DEVEM SER IMPLEMENTADAS EM OUTROS .C):
+// - bool procedimento_save(FILE *fp, PROCEDIMENTO *p);
+// - PROCEDIMENTO* procedimento_load(FILE *fp);
+// - Paciente* buscar_paciente_por_id(ListaPacientes *lista, int id);
+// =================================================================
+
+bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
     if(!lista || !fila)
         return false;
 
-    // Salvando os itens (pacientes) da lista
+    //Salvando a Lista de Pacientes 
     FILE *fp_lista = fopen("lista_pacientes.bin", "wb");
-    if(!fp_lista)
-        return false;
-
-    ITEM *it;
-    int chave;
-    it = LISTA_remover_inicio(lista);
-    while (it != NULL) {
-        chave = ITEM_get_chave(it); // obtém o id do paciente
-        fwrite(&chave, sizeof(int), 1, fp_lista);
-        ITEM_apagar(&it);
-        it = LISTA_remover_inicio(lista);
+    if(!fp_lista) return false;
+    
+    NoLista *no = lista->inicio;
+    while (no != NULL) {
+        // Salva apenas o ID do paciente 
+        fwrite(&(no->paciente.id), sizeof(int), 1, fp_lista); 
+        no = no->proximo;
     }
-    LISTA_apagar(&lista);
-    fclose(fp_lista); fp_lista = NULL;
+    fclose(fp_lista);
 
-    // Salvando os itens da fila
-
+    //Salvando a Fila de Triagem
     FILE *fp_fila = fopen("fila_pacientes.bin", "wb");
-    if(!fp_fila)
-        return false;
+    if(!fp_fila) return false;
 
-    Paciente paciente;
-    while (!fila_vazia(fila)) {
-        paciente = remover_paciente_fila(fila);
-        chave = paciente.id;
-        fwrite(&chave, sizeof(int), 1, fp_fila);
+    
+    int i = fila->inicio;
+    int count = 0;
+    while (count < fila->quantidade) {
+        fwrite(&(fila->pacientes[i].id), sizeof(int), 1, fp_fila);
+        i = (i + 1) % TAMANHO_FILA; 
+        count++;
     }
-    apagar_fila(&fila);
-    fclose(fp_fila); fp_fila = NULL;
+    fclose(fp_fila);
 
+    // Salvando o Histórico de Todos os Pacientes 
+    FILE *fp_historico = fopen("historicos.bin", "wb");
+    if(!fp_historico) return false;
+
+    no = lista->inicio;
+    while (no != NULL) {
+        HISTORICO *h = paciente_get_historico(&(no->paciente)); 
+        
+        if (h != NULL && h->tamanho > 0) { // Só salva se tiver procedimentos
+            fwrite(&(h->paciente_id), sizeof(int), 1, fp_historico);
+            fwrite(h->paciente_nome, sizeof(char), 100, fp_historico);
+            fwrite(&(h->tamanho), sizeof(int), 1, fp_historico);
+
+            // Salva cada procedimento na ordem do array
+            for (int k = 0; k < h->tamanho; k++) {
+                if (!procedimento_save(fp_historico, h->itens[k])) { 
+                    fclose(fp_historico);
+                    return false; 
+                }
+            }
+        }
+        no = no->proximo;
+    }
+    fclose(fp_historico);
+    
     return true;
 }
 
-bool LOAD(LISTA **lista, FilaTriagem **fila) {
+
+// Função LOAD ajustada para Histórico
+bool LOAD(ListaPacientes **lista_ptr, FilaTriagem **fila_ptr, HISTORICO **historico) {
     
-    if(!*lista || !*fila) 
-        return false;
+    ListaPacientes *lista = *lista_ptr;
+    FilaTriagem *fila = *fila_ptr;
 
-    int chave; // Variável auxiliar
+    if(!lista || !fila) return false;
 
-    // Carregando os itens do arquivo na lista
+    int chave; 
 
+    //Carregando a Lista de Pacientes 
     FILE *fp_lista = fopen("lista_pacientes.bin", "rb");
-    if(!fp_lista)
-        return false;
+    if(!fp_lista) return false;
 
-    // Lê as chaves até o fim do arquivo
     while(fread(&chave, sizeof(int), 1, fp_lista) == 1) {
-        Paciente *paciente = malloc(sizeof(Paciente));
-        paciente->id = chave; //mudar funcao
-        LISTA_inserir(*lista, paciente); //mudar funcao
+        Paciente *paciente = (Paciente*) malloc(sizeof(Paciente));
+        if (paciente == NULL) { fclose(fp_lista); return false; }
+        paciente->id = chave;
+        paciente->historico = NULL;
+        inserir_paciente(lista, paciente); 
     }
-    fclose(fp_lista); // Libera memória
+    fclose(fp_lista); 
 
-    // Carregando os itens do arquivo na fila
+    // Carregando e Restaurando o Histórico
+    FILE *fp_historico = fopen("historicos.bin", "rb");
+    if(fp_historico) { 
+        int paciente_id, tamanho;
+        char paciente_nome[100];
 
+        while(fread(&paciente_id, sizeof(int), 1, fp_historico) == 1 &&
+              fread(paciente_nome, sizeof(char), 100, fp_historico) == 1 &&
+              fread(&tamanho, sizeof(int), 1, fp_historico) == 1) {
+
+            // Cria a estrutura HISTORICO
+            HISTORICO *h = historico_criar(paciente_id, paciente_nome);
+            if (h == NULL) { fclose(fp_historico); return false; }
+
+            // Busca o paciente na lista e liga o historico
+            Paciente *paciente_na_lista = buscar_paciente_por_id(lista, paciente_id); 
+
+            if (paciente_na_lista != NULL) {
+                 // Liga o histórico ao paciente 
+                  paciente_na_lista->historico = h;
+            }
+
+            //Carrega e adiciona os procedimentos (restaura a pilha)
+            for (int k = 0; k < tamanho; k++) {
+                PROCEDIMENTO *p = procedimento_load(fp_historico); 
+                if (p == NULL) { 
+                    fclose(fp_historico);
+                    return false; 
+                }
+                // historico_addprocedimento restaura a ordem correta da pilha
+                historico_addprocedimento(h, p); 
+            }
+        }
+        fclose(fp_historico);
+    }
+
+
+    // Carregando a Fila de Triagem 
     FILE *fp_fila = fopen("fila_pacientes.bin", "rb");
-    if(!fp_fila)
-        return false;
+    if(fp_fila) { 
+        while(fread(&chave, sizeof(int), 1, fp_fila) == 1) {
+            // Buscamos o paciente já com o histórico ligado na lista.
+            Paciente *paciente_completo = buscar_paciente_por_id(lista, chave); 
 
-    // Lê as chaves até o fim do arquivo
-    while(fread(&chave, sizeof(int), 1, fp_fila) == 1) {
-        Paciente *paciente = malloc(sizeof(Paciente));
-        paciente->id = chave; //mudar funcao
-        inserir_paciente_fila(*fila, *paciente); 
+            if (paciente_completo != NULL) {
+                // Inserimos o paciente na fila.
+                inserir_paciente_fila(fila, *paciente_completo); 
+            } 
+        }
+        fclose(fp_fila); 
     }
-    fclose(fp_fila); // Libera memória
 
     return true;
 }

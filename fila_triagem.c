@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 
-#define TAMANHO_FILA 50 
+
 
 typedef struct fila{
     Paciente pacientes[TAMANHO_FILA];

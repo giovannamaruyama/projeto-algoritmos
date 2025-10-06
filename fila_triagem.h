@@ -1,7 +1,9 @@
 
 #ifndef FILA_TRIAGEM_H
+
 #define FILA_TRIAGEM_H
 #include "paciente.h"
+#define TAMANHO_FILA 50 
 
 typedef struct fila FilaTriagem;
 
