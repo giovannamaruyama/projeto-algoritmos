@@ -1,4 +1,4 @@
-#ifndef LISTA_PACIENTİES_H
+#ifndef LISTA_PACIENTES_H
 #define LISTA_PACIENTES_H
 
 #include "paciente.c"// a merda do erro, q boosstaaaaa
@@ -23,4 +23,5 @@ void listar_todos_pacientes(ListaPacientes* lista);
 void liberar_lista(ListaPacientes** lista);
 
 #endif
+
 
