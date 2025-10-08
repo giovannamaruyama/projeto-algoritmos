@@ -21,11 +21,16 @@ bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
     
     NoLista *no = lista->inicio;
     while (no != NULL) {
-        // Salva apenas o ID do paciente 
+        
         int paciente_id = get_id_paciente(no->paciente);
         fwrite(&paciente_id, sizeof(int), 1, fp_lista); 
+
+        const char *nome = get_nome_paciente(no->paciente);
+        fwrite(nome, sizeof(char), 100, fp_lista); 
+
         no = no->proximo;
     }
+
     fclose(fp_lista);
 
     //Salvando a Fila de Triagem
@@ -36,15 +41,19 @@ bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
     int i = get_inicio_fila(fila);
     int qtd = get_tamanho_fila(fila);
     int count = 0;
+
+    printf("\n[DEBUG SAVE] Salvando %d pacientes na fila.\n", qtd);
+
     while (count < qtd) {
-    Paciente *p_na_fila = get_paciente_at_fila(fila, i); 
-    if (p_na_fila) {
-        int paciente_id = get_id_paciente(p_na_fila); 
-        fwrite(&paciente_id, sizeof(int), 1, fp_fila);
+        Paciente *p_na_fila = get_paciente_at_fila(fila, i); 
+        if (p_na_fila) {
+            int paciente_id = get_id_paciente(p_na_fila); 
+            fwrite(&paciente_id, sizeof(int), 1, fp_fila);
+        }
+        i = (i + 1) % TAMANHO_FILA; 
+        count++;
     }
-    i = (i + 1) % TAMANHO_FILA; 
-    count++;
-}
+
     fclose(fp_fila);
 
     // Salvando o Histórico de Todos os Pacientes 
@@ -92,16 +101,19 @@ bool LOAD(ListaPacientes **lista_ptr, FilaTriagem **fila_ptr, HISTORICO **histor
     if(!lista || !fila) return false;
 
     int chave; 
+    char nome_paciente[100];
 
     //Carregando a Lista de Pacientes 
     FILE *fp_lista = fopen("lista_pacientes.bin", "rb");
     if(!fp_lista) return false;
 
-    while(fread(&chave, sizeof(int), 1, fp_lista) == 1) {
-        Paciente *paciente = criar_paciente(chave, "Carregado");
+    while(fread(&chave, sizeof(int), 1, fp_lista) == 1 &&
+            fread(nome_paciente, sizeof(char), 100, fp_lista) == 1) {
+        
+        Paciente *paciente = criar_paciente(chave, nome_paciente);
         if (paciente == NULL) { fclose(fp_lista); return false; }
         inserir_paciente(lista, paciente); 
-        free(paciente);
+        //free(paciente);
     }
     fclose(fp_lista); 
 
@@ -145,15 +157,22 @@ bool LOAD(ListaPacientes **lista_ptr, FilaTriagem **fila_ptr, HISTORICO **histor
     // Carregando a Fila de Triagem 
     FILE *fp_fila = fopen("fila_pacientes.bin", "rb");
     if(fp_fila) { 
+        int pacientes_carregados = 0; // 
         while(fread(&chave, sizeof(int), 1, fp_fila) == 1) {
             // Buscamos o paciente já com o histórico ligado na lista.
             Paciente *paciente_completo = buscar_paciente_por_id(lista, chave); 
 
             if (paciente_completo != NULL) {
                 inserir_paciente_fila(fila, paciente_completo); 
-            } 
+                pacientes_carregados++; 
+            } else {
+                printf("[DEBUG LOAD] AVISO: ID %d da fila nao encontrado na Lista de Pacientes.\n", chave);
+            }
         }
         fclose(fp_fila); 
+        printf("[DEBUG LOAD] Fila carregada: %d pacientes encontrados no arquivo.\n", pacientes_carregados); // ✅ DEBUG LOAD
+    } else {
+         printf("[DEBUG LOAD] Arquivo fila_pacientes.bin nao encontrado. Fila vazia.\n");
     }
 
     return true;

@@ -109,18 +109,24 @@ Paciente* buscar_paciente_por_id(ListaPacientes *lista, int id) {
         return NULL;
     }
 
+
     NoLista *no_atual = lista->inicio;
 
+   
     while (no_atual != NULL) {
-        // Se o ID do paciente no nó atual for igual ao ID procurado
-        if (get_id_paciente(no_atual->paciente) == id) {
-            // Retorna o ponteiro para a struct Paciente dentro do nó
-            return (no_atual->paciente);
+        
+      
+        Paciente *p = no_atual->paciente;
+        
+      
+        if (get_id_paciente(p) == id) {
+           
+            return p;
         }
+        
+     
         no_atual = no_atual->proximo;
     }
-
-    // paciente não foi encontrado
     return NULL;
 }
 

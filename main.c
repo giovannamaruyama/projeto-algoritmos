@@ -1,26 +1,42 @@
-#include <stdio.h>
-#include <stdlib.h>
+
 #include "lista_pacientes.h"
 #include "fila_triagem.h"
-#include "IO.h"
 #include "menu.h"
+#include "IO.h" 
 
-int main(){
-    ListaPacientes *lista = criar_lista(); 
-    FilaTriagem *fila = cria_fila();       
 
-    LOAD(&lista, &fila, NULL); 
+void pausar_tela() {
+    printf("\nPressione ENTER para continuar...");
+    fflush(stdout); 
+    limpar_buffer();
+    getchar();
+}
+
+int main() {
+    ListaPacientes *lista = criar_lista();
+    FilaTriagem *fila = cria_fila();
+    HISTORICO *historico_principal = NULL; 
+
+    
+    if (LOAD(&lista, &fila, &historico_principal)) {
+        printf("Dados carregados com sucesso!\n");
+        pausar_tela();
+
+    } else {
+        printf("Nenhum dado salvo encontrado ou erro ao carregar. Iniciando com estruturas vazias.\n");
+        pausar_tela();
+    }
+    
+    
 
     int acao;
-    bool continuar_programa = true;
+    bool continuar = true;
 
-    while(continuar_programa){
+    while (continuar) {
         acao = exibirMenuPrincipal();
-        continuar_programa = processarAcao(acao, lista, fila);
+        continuar = processarAcao(acao, lista, fila);
     }
-
-    liberar_lista(&lista);
-    apagar_fila(&fila); 
+    
 
     return 0;
 }

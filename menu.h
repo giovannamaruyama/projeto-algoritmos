@@ -9,5 +9,6 @@
 
 int exibirMenuPrincipal();
 bool processarAcao(int acao, ListaPacientes *lista, FilaTriagem *fila); // manipula os tads
+void limpar_buffer();
 
 #endif 

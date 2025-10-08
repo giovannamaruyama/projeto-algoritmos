@@ -59,3 +59,10 @@ Paciente* criar_paciente(int id, const char *nome) {
     
     return p;
 }
+
+void liberar_paciente(Paciente *p){
+    if(p != NULL){
+        free(p);
+        p = NULL;
+    }
+}

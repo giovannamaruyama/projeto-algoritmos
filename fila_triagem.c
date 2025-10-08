@@ -103,3 +103,21 @@ void apagar_fila(FilaTriagem **fila) {
     }
 }
 
+bool fila_contem_paciente(FilaTriagem *fila, int paciente_id) {
+    if (fila_vazia(fila)) {
+        return false;
+    }
+
+    int i = fila->inicio;
+    int count = 0;
+    while (count < fila->quantidade) {
+        Paciente *p = fila->pacientes[i];
+        
+        if (get_id_paciente(p) == paciente_id) {
+            return true;
+        }
+        i = (i + 1) % TAMANHO_FILA;
+        count++;
+    }
+    return false;
+}

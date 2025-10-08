@@ -11,5 +11,6 @@ char *get_nome_paciente(Paciente *p);
 HISTORICO* paciente_get_historico(Paciente *p);
 void paciente_set_historico(Paciente *p, HISTORICO *h);
 Paciente* criar_paciente(int id, const char *nome);
+void liberar_paciente(Paciente *p);
 
 #endif

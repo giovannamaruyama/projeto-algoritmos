@@ -3,6 +3,8 @@
 #define FILA_TRIAGEM_H
 
 #include "paciente.h"
+#include <stdbool.h>
+#include <stdio.h>
 
 #define TAMANHO_FILA 50 
 
@@ -29,6 +31,8 @@ int get_fim_fila (FilaTriagem *fila);
 int get_tamanho_fila (FilaTriagem *fila);
 
 Paciente* get_paciente_at_fila(FilaTriagem *fila, int index);
+
+bool fila_contem_paciente(FilaTriagem *fila, int paciente_id);
 
 
 #endif

@@ -3,11 +3,14 @@
 #include "menu.h"
 #include "paciente.h"
 #include "historico.h"
+#include "lista_pacientes.h"
+#include "fila_triagem.h" 
 #include "IO.h" 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
 #ifdef _WIN32
 #define CLEAR_SCREEN "cls"
@@ -46,6 +49,25 @@ int exibirMenuPrincipal() {
     limpar_buffer();
     return opcao;
 }
+
+// Funcao auxiliar para obter o ID do paciente
+Paciente* obter_paciente(ListaPacientes *lista) {
+    int id_input;
+    printf("Digite o ID do paciente: ");
+    if (scanf("%d", &id_input) != 1) {
+        limpar_buffer();
+        printf("ID invalido.\n");
+        return NULL;
+    }
+    limpar_buffer();
+
+    Paciente *p = buscar_paciente_por_id(lista, id_input);
+    if (p == NULL) {
+        printf("Erro: Paciente com ID %d nao encontrado.\n", id_input);
+    }
+    return p;
+}
+
 
 // acoes do usuario
 bool processarAcao(int acao, ListaPacientes *lista, FilaTriagem *fila) {
@@ -99,28 +121,133 @@ bool processarAcao(int acao, ListaPacientes *lista, FilaTriagem *fila) {
 
             break;
         }
+        
+        case 2: { // Registrar óbito de paciente
+            printf("\n--- Opcao 2: Registrar Obito ---\n");
+            Paciente *p = obter_paciente(lista);
+            if (p == NULL) break;
+            
+            int id = get_id_paciente(p);
+            
+            // paciente na fila não pode ser apagado
+            if (fila_contem_paciente(fila, id)) {
+                printf("ERRO: O paciente %s (ID %d) esta atualmente na fila de triagem e nao pode ser apagado.\n", get_nome_paciente(p), id);
+                break; // Sai do case
+            }
+            
+            
+            if (apagar_paciente(lista, id)) {
+                printf("Paciente %s (ID %d) removido da lista de pacientes.\n", get_nome_paciente(p), id);
+                
+                liberar_paciente(p); 
+                
+                printf("Registro de obito concluido.\n");
+            } else {
+                printf("Erro: Nao foi possivel apagar o paciente da lista (nao deveria acontecer).\n");
+            }
+            break;
+        }
+        
+        case 3: { // Adicionar procedimento ao historico medico
+            printf("\n--- Opcao 3: Adicionar Procedimento ---\n");
+            Paciente *p = obter_paciente(lista);
+            if (p == NULL) break;
+            
+            printf("Paciente: %s (ID %d)\n", get_nome_paciente(p), get_id_paciente(p));
+            
+            char descricao[256];
+            int medico_id;
+            char data_str[20];
+            
+            printf("Digite a descrição do procedimento: ");
+            if (fgets(descricao, sizeof(descricao), stdin) != NULL) {
+                descricao[strcspn(descricao, "\n")] = '\0';
+            } else {
+                break;
+            }
+            
+            printf("Digite o ID do Médico responsável: ");
+            if (scanf("%d", &medico_id) != 1) {
+                limpar_buffer();
+                printf("ID de medico invalido.\n");
+                break;
+            }
+            limpar_buffer();
+            
+        
+            time_t now = time(NULL);
+            struct tm *t = localtime(&now);
+            strftime(data_str, sizeof(data_str), "%Y-%m-%d %H:%M:%S", t);
+            
+            
+            PROCEDIMENTO *proc = procedimento_criar(descricao, data_str); 
+            
+            if (proc == NULL) {
+                printf("Erro ao criar procedimento.\n");
+                break;
+            }
+            
+            HISTORICO *h = paciente_get_historico(p);
+            historico_addprocedimento(h, proc); 
+            
+            printf("Procedimento '%s' adicionado ao histórico de %s.\n", descricao, get_nome_paciente(p));
+
+            break;
+        }
+        
+        case 4: { // Desfazer procedimento do historico medico
+            printf("\n--- Opcao 4: Desfazer Procedimento ---\n");
+            Paciente *p = obter_paciente(lista);
+            if (p == NULL) break;
+            
+            HISTORICO *h = paciente_get_historico(p);
+            if (historico_get_tamanho(h) == 0) {
+                printf("O paciente %s nao possui procedimentos no historico para desfazer.\n", get_nome_paciente(p));
+                break;
+            }
+            
+            // Assume historico_removeprocedimento e procedimento_apagar existem
+            PROCEDIMENTO *proc_removido = historico_removeprocedimento(h);
+            
+            if (proc_removido != NULL) {
+                printf("Procedimento desfeito com sucesso: %s\n", procedimento_get_data(proc_removido)); // Assume get_descricao existe
+                procedimento_apagar(&proc_removido); // Libera a memória do procedimento
+            } else {
+                printf("Erro ao desfazer procedimento.\n");
+            }
+            break;
+        }
+        
         case 5: { // Chamar paciente para atendimento
             printf("\n--- Opcao 5: Chamar Paciente ---\n");
             if (fila_vazia(fila)) { 
                 printf("Nao ha pacientes na fila de triagem para atendimento.\n");
             } else {
+                // remove_paciente_fila retorna o ponteiro que deve ser liberado pelo chamador se nao for mais usado.
                 Paciente *paciente_atendido = remover_paciente_fila(fila); 
                 printf("Paciente CHAMADO: %s (ID %d). Agora esta em atendimento medico.\n", 
                        get_nome_paciente(paciente_atendido), get_id_paciente(paciente_atendido));
             }
             break;
         }
+        
         case 6: // Mostrar fila de espera
             printf("\n--- Opcao 6: Mostrar Fila de Espera ---\n");
             mostrar_fila(fila); 
             break;
 
-        // --- essa parte é mais fácil a gi implementar, é a parte que mexe com o histórico e os procedimentos ---
-        case 2: 
-        case 3:
-        case 4:
-        case 7: 
-        // ---------------------------------------------
+        case 7: { // Mostrar historico do paciente
+            printf("\n--- Opcao 7: Mostrar Histórico ---\n");
+            Paciente *p = obter_paciente(lista);
+            if (p == NULL) break;
+            
+            HISTORICO *h = paciente_get_historico(p);
+            printf("Histórico de Atendimento: %s (ID %d)\n", get_nome_paciente(p), get_id_paciente(p));
+
+            // Assume historico_imprimir(h) existe e lida com a pilha de procedimentos
+            historico_imprimir(h); 
+            break;
+        }
             
         case 8: // Sair
             printf("\n--- Opcao 8: Sair ---\n");
