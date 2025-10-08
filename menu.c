@@ -1,7 +1,7 @@
 // menu.c
 
 #include "menu.h"
-#include "paciente.c" // n sei pq da erro se coloco o .h  WTF!!!!!
+#include "paciente.h"
 #include "historico.h"
 #include "IO.h" 
 #include <stdio.h>
@@ -86,14 +86,14 @@ bool processarAcao(int acao, ListaPacientes *lista, FilaTriagem *fila) {
                     break;
                 }
                 
-                inserir_paciente_lista(lista, p); 
+                inserir_paciente(lista, p); 
                 printf("Paciente %s registrado na base de dados.\n", get_nome_paciente(p));
             }
 
             if (fila_cheia(fila)) { 
                 printf("ERRO: A fila de triagem esta cheia! Nao foi possivel adicionar.\n");
             } else {
-                inserir_paciente_fila(fila, *p); 
+                inserir_paciente_fila(fila, p); 
                 printf("Paciente enviado para a fila de triagem com sucesso.\n");
             }
 
@@ -104,9 +104,9 @@ bool processarAcao(int acao, ListaPacientes *lista, FilaTriagem *fila) {
             if (fila_vazia(fila)) { 
                 printf("Nao ha pacientes na fila de triagem para atendimento.\n");
             } else {
-                Paciente paciente_atendido = remover_paciente_fila(fila); 
+                Paciente *paciente_atendido = remover_paciente_fila(fila); 
                 printf("Paciente CHAMADO: %s (ID %d). Agora esta em atendimento medico.\n", 
-                       paciente_atendido.nome, paciente_atendido.id);
+                       get_nome_paciente(paciente_atendido), get_id_paciente(paciente_atendido));
             }
             break;
         }

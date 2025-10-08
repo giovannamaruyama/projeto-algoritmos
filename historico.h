@@ -15,6 +15,8 @@
     void historico_apagar(HISTORICO **h);
     int historico_get_paciente_id(HISTORICO *h);
     const char* historico_get_paciente_nome(HISTORICO *h);
+    int historico_get_tamanho(HISTORICO *h);
+    PROCEDIMENTO* historico_get_procedimento_at(HISTORICO *h, int index);
 
     #endif
 

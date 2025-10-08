@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lista_pacientes.h"
-#include "paciente.c"// tem q ser .h aqui
+#include "paciente.h"// tem q ser .h aqui
 
 ListaPacientes* criar_lista() {
     ListaPacientes* lista = (ListaPacientes*) malloc(sizeof(ListaPacientes));
@@ -14,10 +14,10 @@ ListaPacientes* criar_lista() {
     return lista;
 }
 
-int inserir_paciente(ListaPacientes* lista, Paciente novo_paciente) { // se uso o include paciente.h, dá erro aqui. n entendi pq
+int inserir_paciente(ListaPacientes* lista, Paciente *novo_paciente) { 
     if (lista == NULL) return 0;
 
-    if (buscar_paciente(lista, novo_paciente.id) != NULL) {
+    if (buscar_paciente(lista, get_id_paciente(novo_paciente)) != NULL) {
         printf("Erro: ID de paciente ja cadastrado.\n");
         return 0;
     }
@@ -44,11 +44,11 @@ int inserir_paciente(ListaPacientes* lista, Paciente novo_paciente) { // se uso 
 Paciente* buscar_paciente(ListaPacientes* lista, int id) {
     if (lista == NULL) return NULL;
     NoLista* p = lista->inicio;
-    while (p != NULL && p->paciente.id != id) {
+    while (p != NULL && get_id_paciente(p->paciente) != id) {
         p = p->proximo;
     }
     if (p != NULL) {
-        return &(p->paciente);
+        return (p->paciente);
     }
     return NULL;
 }
@@ -57,7 +57,7 @@ int apagar_paciente(ListaPacientes* lista, int id) {
     if (lista == NULL || lista->inicio == NULL) return 0;
 
     NoLista* p = lista->inicio;
-    while (p != NULL && p->paciente.id != id) {
+    while (p != NULL && get_id_paciente(p->paciente) != id) {
         p = p->proximo;
     }
 
@@ -99,7 +99,7 @@ void listar_pacientes(ListaPacientes* lista) {
     printf("Listagem de Todos os Pacientes\n");
     NoLista* atual = lista->inicio;
     while (atual != NULL) {
-        printf("ID: %d | Nome: %s\n", atual->paciente.id, atual->paciente.nome);
+        printf("ID: %d | Nome: %s\n", get_id_paciente(atual->paciente), get_nome_paciente(atual->paciente));
         atual = atual->proximo;
     }
 }
@@ -113,9 +113,9 @@ Paciente* buscar_paciente_por_id(ListaPacientes *lista, int id) {
 
     while (no_atual != NULL) {
         // Se o ID do paciente no nó atual for igual ao ID procurado
-        if (no_atual->paciente.id == id) {
+        if (get_id_paciente(no_atual->paciente) == id) {
             // Retorna o ponteiro para a struct Paciente dentro do nó
-            return &(no_atual->paciente);
+            return (no_atual->paciente);
         }
         no_atual = no_atual->proximo;
     }
@@ -123,3 +123,4 @@ Paciente* buscar_paciente_por_id(ListaPacientes *lista, int id) {
     // paciente não foi encontrado
     return NULL;
 }
+

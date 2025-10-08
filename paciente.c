@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-typedef struct paciente {
+struct paciente {
     int id; 
     char nome[100];
     HISTORICO *historico;
@@ -18,6 +17,15 @@ char *get_nome_paciente(Paciente *p){
     return p->nome;
 }
 
+void set_id_paciente (Paciente *p, int index){
+    p->id = index;
+}
+
+void paciente_set_historico(Paciente *p, HISTORICO *h) {
+    if (p != NULL) {
+        p->historico = h;
+    }
+}
 
 HISTORICO* paciente_get_historico(Paciente *p){
     if (p == NULL) {

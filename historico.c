@@ -100,3 +100,15 @@ const char* historico_get_paciente_nome(HISTORICO *h){
     return h ? h->paciente_nome : NULL;
 }
 
+int historico_get_tamanho(HISTORICO *h) {
+    return (h != NULL) ? h->tamanho : 0;
+}
+
+
+PROCEDIMENTO* historico_get_procedimento_at(HISTORICO *h, int index) {
+    if (h != NULL && index >= 0 && index < h->tamanho) {
+        // Retorna o ponteiro para o PROCEDIMENTO no índice do array
+        return h->itens[index]; 
+    }
+    return NULL;
+}

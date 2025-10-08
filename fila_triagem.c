@@ -1,11 +1,11 @@
 #include "fila_triagem.h"
-#include "paciente.c"
+#include "paciente.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 
-typedef struct fila{
-    Paciente pacientes[TAMANHO_FILA];
+struct fila{
+    Paciente *pacientes[TAMANHO_FILA];
     int inicio;
     int fim;
     int quantidade;
@@ -21,6 +21,27 @@ FilaTriagem* cria_fila() {
     return fila;
 }
 
+int get_inicio_fila (FilaTriagem *fila){
+    return fila->inicio;
+}
+
+int get_fim_fila (FilaTriagem *fila){
+    return fila->fim;
+}
+
+int get_tamanho_fila (FilaTriagem *fila){
+    return fila->quantidade;
+}
+
+// Retorna o Paciente * no índice dado 
+Paciente* get_paciente_at_fila(FilaTriagem *fila, int index) {
+    if (fila != NULL && index >= 0 && index < TAMANHO_FILA) {
+        return fila->pacientes[index];
+    }
+    return NULL;
+}
+
+
 int fila_vazia(FilaTriagem *fila) {
     return fila->quantidade == 0;
 }
@@ -31,28 +52,29 @@ int fila_cheia(FilaTriagem *fila) {
 }
 
 
-int inserir_paciente_fila(FilaTriagem *fila, Paciente paciente) { 
+int inserir_paciente_fila(FilaTriagem *fila, Paciente *novo_paciente) { 
     if (fila_cheia(fila)) {
         return 0;
     }
     fila->fim = (fila->fim + 1) % TAMANHO_FILA;
-    fila->pacientes[fila->fim] = paciente;
+    fila->pacientes[fila->fim] = novo_paciente;
     fila->quantidade++;
     return 1; 
 }
 
 // verificar se a fila esta vazia antes de chamar esta funcao
-Paciente remover_paciente_fila(FilaTriagem *fila) {
+Paciente* remover_paciente_fila(FilaTriagem *fila) {
     if (fila_vazia(fila)) {
-        // retorna um paciente invalido
-        Paciente pacienteInvalido;
-        pacienteInvalido.id = -1;
-        return pacienteInvalido;
+        return NULL;
     }
-   
-    Paciente pacienteAtendido = fila->pacientes[fila->inicio];
+
+    Paciente *pacienteAtendido = fila->pacientes[fila->inicio];
+    
+    fila->pacientes[fila->inicio] = NULL; 
     fila->inicio = (fila->inicio + 1) % TAMANHO_FILA;
     fila->quantidade--;
+    
+    // dar free(pacienteAtendido) onde chamar essa funcao
     return pacienteAtendido;
 }
 
@@ -67,7 +89,8 @@ void mostrar_fila(FilaTriagem *fila) {
     int i = fila->inicio;
     int count = 0;
     while (count < fila->quantidade) {
-        printf("ID: %d, Nome: %s\n", fila->pacientes[i].id, fila->pacientes[i].nome);
+        Paciente *p = fila->pacientes[i];
+        printf("ID: %d, Nome: %s\n", get_id_paciente(p), get_nome_paciente(p));
         i = (i + 1) % TAMANHO_FILA;
         count++;
     }
