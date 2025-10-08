@@ -1,75 +1,78 @@
-// IO.C
+// IO.c
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "IO.h"
-#include "fila_triagem.h" 
+#include "fila_triagem.h"
 #include "paciente.h"
 #include "lista_pacientes.h"
 #include "historico.h"
-
-
+#include "procedimentos.h"   // <- precisa para procedimento_save / procedimento_load
 
 bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
-   if (!lista || fila == NULL) {
+    (void)historico; // suprime warning se não usar o parâmetro
+
+    if (!lista || !fila) {
         printf("[ERRO] Lista ou fila inexistente.\n");
         return false;
     }
-    //Salvando a Lista de Pacientes 
+
+    // --- Salvar Lista de Pacientes com contagem ---
     FILE *fp_lista = fopen("lista_pacientes.bin", "wb");
-    if(!fp_lista) return false;
-    
-    NoLista *no = lista->inicio;
-    while (no != NULL) {
-        
-        int paciente_id = get_id_paciente(no->paciente);
-        fwrite(&paciente_id, sizeof(int), 1, fp_lista); 
+    if (!fp_lista) return false;
 
+    // conta nós
+    int n = 0;
+    for (NoLista *aux = lista->inicio; aux; aux = aux->proximo) n++;
+
+    // grava contagem
+    fwrite(&n, sizeof(int), 1, fp_lista);
+
+    // grava (id + nome com 100 bytes fixos)
+    for (NoLista *no = lista->inicio; no; no = no->proximo) {
+        int id = get_id_paciente(no->paciente);
         const char *nome = get_nome_paciente(no->paciente);
-        fwrite(nome, sizeof(char), 100, fp_lista); 
+        char nome_fix[100] = {0};
+        if (nome) strncpy(nome_fix, nome, sizeof(nome_fix) - 1);
 
-        no = no->proximo;
+        fwrite(&id, sizeof(int), 1, fp_lista);
+        fwrite(nome_fix, sizeof(nome_fix), 1, fp_lista);
     }
-
     fclose(fp_lista);
+    printf("Lista: %d pacientes salvos.\n", n);
 
-    //Salvando a Fila de Triagem
+    // --- Salvar Fila de Triagem (IDs em ordem de atendimento) ---
     FILE *fp_fila = fopen("fila_pacientes.bin", "wb");
-    if(!fp_fila) return false;
+    if (!fp_fila) return false;
 
-    
     int i = get_inicio_fila(fila);
     int qtd = get_tamanho_fila(fila);
     int count = 0;
 
-    printf("\n[DEBUG SAVE] Salvando %d pacientes na fila.\n", qtd);
-
+    printf("[Salvando %d pacientes na fila.\n", qtd);
     while (count < qtd) {
-        Paciente *p_na_fila = get_paciente_at_fila(fila, i); 
+        Paciente *p_na_fila = get_paciente_at_fila(fila, i);
         if (p_na_fila) {
-            int paciente_id = get_id_paciente(p_na_fila); 
+            int paciente_id = get_id_paciente(p_na_fila);
             fwrite(&paciente_id, sizeof(int), 1, fp_fila);
         }
-        i = (i + 1) % TAMANHO_FILA; 
+        i = (i + 1) % TAMANHO_FILA;
         count++;
     }
-
     fclose(fp_fila);
 
-    // Salvando o Histórico de Todos os Pacientes 
+    // --- Salvar o Histórico de Todos os Pacientes ---
     FILE *fp_historico = fopen("historicos.bin", "wb");
-    if(!fp_historico) return false;
+    if (!fp_historico) return false;
 
-    
-    no = lista->inicio;
-    while (no != NULL) {
-        HISTORICO *h = paciente_get_historico((no->paciente)); 
+    for (NoLista *no = lista->inicio; no; no = no->proximo) {
+        HISTORICO *h = paciente_get_historico(no->paciente);
+        if (!h) continue;
 
         int tam = historico_get_tamanho(h);
-        
-        if (h != NULL && tam > 0) { // Só salva se tiver procedimentos
-            
+        if (tam > 0) { // só salva se tiver procedimentos
             int id = historico_get_paciente_id(h);
             const char *nome = historico_get_paciente_nome(h);
 
@@ -77,103 +80,100 @@ bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
             fwrite(nome, sizeof(char), 100, fp_historico);
             fwrite(&tam, sizeof(int), 1, fp_historico);
 
-            // Salva cada procedimento na ordem do array
             for (int k = 0; k < tam; k++) {
-                PROCEDIMENTO *p = historico_get_procedimento_at(h, k); 
-                if (!procedimento_save(fp_historico,p)) { 
+                PROCEDIMENTO *p = historico_get_procedimento_at(h, k);
+                if (!procedimento_save(fp_historico, p)) {
                     fclose(fp_historico);
-                    return false; 
+                    return false;
                 }
             }
         }
-        no = no->proximo;
     }
     fclose(fp_historico);
-    
+
     return true;
 }
 
-
 bool LOAD(ListaPacientes **lista_ptr, FilaTriagem **fila_ptr, HISTORICO **historico) {
-    
+    (void)historico; // não usamos diretamente aqui
+
     ListaPacientes *lista = *lista_ptr;
     FilaTriagem *fila = *fila_ptr;
+    if (!lista || !fila) return false;
 
-    if(!lista || !fila) return false;
-
-    int chave; 
-    char nome_paciente[100];
-
-    //Carregando a Lista de Pacientes 
+    // --- Carregar Lista com contagem ---
     FILE *fp_lista = fopen("lista_pacientes.bin", "rb");
-    if(!fp_lista) return false;
+    if (!fp_lista) return false;
 
-    while(fread(&chave, sizeof(int), 1, fp_lista) == 1 &&
-            fread(nome_paciente, sizeof(char), 100, fp_lista) == 1) {
-        
-        Paciente *paciente = criar_paciente(chave, nome_paciente);
-        if (paciente == NULL) { fclose(fp_lista); return false; }
-        inserir_paciente(lista, paciente); 
-        //free(paciente);
+    int n = 0;
+    if (fread(&n, sizeof(int), 1, fp_lista) != 1) { fclose(fp_lista); return false; }
+
+    int lidos = 0;
+    for (int i = 0; i < n; i++) {
+        int id;
+        char nome[100];
+
+        if (fread(&id, sizeof(int), 1, fp_lista) != 1 ||
+            fread(nome, sizeof(nome), 1, fp_lista) != 1) {
+            fclose(fp_lista);
+            return false;
+        }
+
+        Paciente *paciente = criar_paciente(id, nome);
+        if (!paciente) { fclose(fp_lista); return false; }
+
+        inserir_paciente(lista, paciente);
+        lidos++;
     }
-    fclose(fp_lista); 
+    fclose(fp_lista);
+    printf("Lista: %d/%d pacientes carregados.\n", lidos, n);
 
-    // Carregando e Restaurando o Histórico
+    // --- Carregar e Restaurar Históricos ---
     FILE *fp_historico = fopen("historicos.bin", "rb");
-    if(fp_historico) { 
+    if (fp_historico) {
         int paciente_id, tamanho;
         char paciente_nome[100];
 
-        while(fread(&paciente_id, sizeof(int), 1, fp_historico) == 1 &&
-              fread(paciente_nome, sizeof(char), 100, fp_historico) == 1 &&
-              fread(&tamanho, sizeof(int), 1, fp_historico) == 1) {
+        while (fread(&paciente_id, sizeof(int), 1, fp_historico) == 1 &&
+               fread(paciente_nome, sizeof(char), 100, fp_historico) == 1 &&
+               fread(&tamanho, sizeof(int), 1, fp_historico) == 1) {
 
-            // Cria a estrutura HISTORICO
             HISTORICO *h = historico_criar(paciente_id, paciente_nome);
-            if (h == NULL) { fclose(fp_historico); return false; }
+            if (!h) { fclose(fp_historico); return false; }
 
-            // Busca o paciente na lista e liga o historico
-            Paciente *paciente_na_lista = buscar_paciente_por_id(lista, paciente_id); 
-
-            if (paciente_na_lista != NULL) {
-                 // Liga o histórico ao paciente 
-                  paciente_set_historico(paciente_na_lista,h);
+            Paciente *paciente_na_lista = buscar_paciente_por_id(lista, paciente_id);
+            if (paciente_na_lista) {
+                paciente_set_historico(paciente_na_lista, h);
             }
 
-            //Carrega e adiciona os procedimentos (restaura a pilha)
             for (int k = 0; k < tamanho; k++) {
-                PROCEDIMENTO *p = procedimento_load(fp_historico); 
-                if (p == NULL) { 
-                    fclose(fp_historico);
-                    return false; 
-                }
-                // historico_addprocedimento restaura a ordem correta da pilha
-                historico_addprocedimento(h, p); 
+                PROCEDIMENTO *p = procedimento_load(fp_historico);
+                if (!p) { fclose(fp_historico); return false; }
+                historico_addprocedimento(h, p);
             }
         }
         fclose(fp_historico);
     }
 
-
-    // Carregando a Fila de Triagem 
+    // --- Carregar Fila de Triagem ---
     FILE *fp_fila = fopen("fila_pacientes.bin", "rb");
-    if(fp_fila) { 
-        int pacientes_carregados = 0; // 
-        while(fread(&chave, sizeof(int), 1, fp_fila) == 1) {
-            // Buscamos o paciente já com o histórico ligado na lista.
-            Paciente *paciente_completo = buscar_paciente_por_id(lista, chave); 
+    if (fp_fila) {
+        int chave;
+        int pacientes_carregados = 0;
 
-            if (paciente_completo != NULL) {
-                inserir_paciente_fila(fila, paciente_completo); 
-                pacientes_carregados++; 
+        while (fread(&chave, sizeof(int), 1, fp_fila) == 1) {
+            Paciente *paciente_completo = buscar_paciente_por_id(lista, chave);
+            if (paciente_completo) {
+                inserir_paciente_fila(fila, paciente_completo);
+                pacientes_carregados++;
             } else {
-                printf("[DEBUG LOAD] AVISO: ID %d da fila nao encontrado na Lista de Pacientes.\n", chave);
+                printf("AVISO: ID %d da fila nao encontrado na Lista de Pacientes.\n", chave);
             }
         }
-        fclose(fp_fila); 
-        printf("[DEBUG LOAD] Fila carregada: %d pacientes encontrados no arquivo.\n", pacientes_carregados); // ✅ DEBUG LOAD
+        fclose(fp_fila);
+        printf("Fila carregada: %d pacientes encontrados no arquivo.\n", pacientes_carregados);
     } else {
-         printf("[DEBUG LOAD] Arquivo fila_pacientes.bin nao encontrado. Fila vazia.\n");
+        printf("Arquivo fila_pacientes.bin nao encontrado. Fila vazia.\n");
     }
 
     return true;
