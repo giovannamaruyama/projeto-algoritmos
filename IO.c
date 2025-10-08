@@ -12,9 +12,10 @@
 
 
 bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
-    if(!lista || !fila)
+   if (!lista || fila == NULL) {
+        printf("[ERRO] Lista ou fila inexistente.\n");
         return false;
-
+    }
     //Salvando a Lista de Pacientes 
     FILE *fp_lista = fopen("lista_pacientes.bin", "wb");
     if(!fp_lista) return false;
