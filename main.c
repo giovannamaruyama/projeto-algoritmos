@@ -36,6 +36,8 @@ int main() {
         acao = exibirMenuPrincipal();
         continuar = processarAcao(acao, lista, fila);
     }
+    SAVE(lista, fila, NULL);
+    printf("Dados salvos com sucesso antes de encerrar.\n");
     
 
     return 0;
