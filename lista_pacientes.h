@@ -19,10 +19,11 @@ ListaPacientes* criar_lista();
 int inserir_paciente(ListaPacientes* lista, Paciente *novo_paciente);
 Paciente* buscar_paciente(ListaPacientes* lista, int id);
 int apagar_paciente(ListaPacientes* lista, int id);
-void listar_todos_pacientes(ListaPacientes* lista);
+void listar_pacientes(ListaPacientes* lista);
 void liberar_lista(ListaPacientes** lista);
 Paciente* buscar_paciente_por_id(ListaPacientes *lista, int id);
 
 #endif
+
 
 
