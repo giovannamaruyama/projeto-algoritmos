@@ -3,10 +3,21 @@
 #include <string.h>
 #include "lista_pacientes.h"
 #include "paciente.h"// tem q ser .h aqui
+typedef struct no {
+    Paciente* paciente;
+    struct no* proximo;
+    struct no* anterior;
+} NoLista;
+
+struct lista {
+    NoLista* inicio;
+    NoLista* fim;
+    int tamanho;
+};
 
 ListaPacientes* criar_lista() {
     ListaPacientes* lista = (ListaPacientes*) malloc(sizeof(ListaPacientes));
-    if (lista != NULL) {
+    if (lista) {
         lista->inicio = NULL;
         lista->fim = NULL;
         lista->tamanho = 0;
@@ -14,27 +25,20 @@ ListaPacientes* criar_lista() {
     return lista;
 }
 
-int inserir_paciente(ListaPacientes* lista, Paciente *novo_paciente) { 
-    if (lista == NULL) return 0;
-
-    if (buscar_paciente(lista, get_id_paciente(novo_paciente)) != NULL) {
-        printf("Erro: ID de paciente ja cadastrado.\n");
-        return 0;
-    }
+int inserir_paciente(ListaPacientes* lista, Paciente* novo_paciente) {
+    if (lista == NULL || novo_paciente == NULL) return 0;
 
     NoLista* pnovo = (NoLista*) malloc(sizeof(NoLista));
-    if (pnovo == NULL) return 0;
-    // Cria novo paciente e insere na lista
+    if (!pnovo) return 0;
+
     pnovo->paciente = novo_paciente;
     pnovo->anterior = NULL;
+    pnovo->proximo = lista->inicio;
 
-    if (lista->inicio == NULL) {
-        pnovo->proximo = NULL;
-        lista->fim = pnovo;
-    } else {
-        pnovo->proximo = lista->inicio;
+    if (lista->inicio)
         lista->inicio->anterior = pnovo;
-    }
+    else
+        lista->fim = pnovo;
 
     lista->inicio = pnovo;
     lista->tamanho++;
@@ -42,91 +46,94 @@ int inserir_paciente(ListaPacientes* lista, Paciente *novo_paciente) {
 }
 
 Paciente* buscar_paciente(ListaPacientes* lista, int id) {
-    if (lista == NULL) return NULL;
+    if (!lista) return NULL;
     NoLista* p = lista->inicio;
-    while (p != NULL && get_id_paciente(p->paciente) != id) {
+
+    while (p) {
+        if (get_id_paciente(p->paciente) == id)
+            return p->paciente;
         p = p->proximo;
-    }
-    if (p != NULL) {
-        return (p->paciente);
     }
     return NULL;
 }
 
 int apagar_paciente(ListaPacientes* lista, int id) {
-    if (lista == NULL || lista->inicio == NULL) return 0;
+    if (!lista) return 0;
 
     NoLista* p = lista->inicio;
-    while (p != NULL && get_id_paciente(p->paciente) != id) {
+    while (p && get_id_paciente(p->paciente) != id) {
         p = p->proximo;
     }
+    if (!p) return 0;
 
-    if (p == NULL) return 0;
-
-    if (p == lista->inicio) {
-        lista->inicio = p->proximo;
-    } else {
+    if (p->anterior)
         p->anterior->proximo = p->proximo;
-    }
-    if (p == lista->fim) {
-        lista->fim = p->anterior;
-    } else {
+    else
+        lista->inicio = p->proximo;
+
+    if (p->proximo)
         p->proximo->anterior = p->anterior;
-    }
+    else
+        lista->fim = p->anterior;
+
+    // NÃO dá free no paciente, pois é responsabilidade externa
     free(p);
     lista->tamanho--;
     return 1;
 }
 
-void liberar_lista(ListaPacientes** lista) {
-    if (*lista == NULL) return;
+void listar_todos_pacientes(ListaPacientes* lista) {
+    if (!lista || !lista->inicio) {
+        printf("Nenhum paciente cadastrado.\n");
+        return;
+    }
+    NoLista* atual = lista->inicio;
+    while (atual) {
+        printf("ID: %d | Nome: %s\n",
+               get_id_paciente(atual->paciente),
+               get_nome_paciente(atual->paciente));
+        atual = atual->proximo;
+    }
+}
 
-    NoLista* no_atual = (*lista)->inicio;
-    while (no_atual != NULL) {
-        NoLista* proximo = no_atual->proximo;
-        free(no_atual);
-        no_atual = proximo;
+void liberar_lista(ListaPacientes** lista) {
+    if (!lista || !*lista) return;
+
+    NoLista* atual = (*lista)->inicio;
+    while (atual) {
+        NoLista* prox = atual->proximo;
+        free(atual);
+        atual = prox;
     }
     free(*lista);
     *lista = NULL;
 }
 
-void listar_pacientes(ListaPacientes* lista) {
-    if (lista == NULL || lista->inicio == NULL) {
-        printf("Nenhum paciente cadastrado.\n");
-        return;
-    }
-    printf("Listagem de Todos os Pacientes\n");
-    NoLista* atual = lista->inicio;
-    while (atual != NULL) {
-        printf("ID: %d | Nome: %s\n", get_id_paciente(atual->paciente), get_nome_paciente(atual->paciente));
-        atual = atual->proximo;
-    }
-}
-
-Paciente* buscar_paciente_por_id(ListaPacientes *lista, int id) {
-    if (lista == NULL) {
-        return NULL;
-    }
-
-
-    NoLista *no_atual = lista->inicio;
-
-   
-    while (no_atual != NULL) {
-        
-      
-        Paciente *p = no_atual->paciente;
-        
-      
-        if (get_id_paciente(p) == id) {
-           
-            return p;
-        }
-        
-     
-        no_atual = no_atual->proximo;
+NoLista* lista_get_inicio(const ListaPacientes* lista) {
+    if (lista) {
+        return lista->inicio;
     }
     return NULL;
+}
+
+NoLista* no_get_proximo(const NoLista* no) {
+    if (no) {
+        return no->proximo;
+    }
+    return NULL;
+}
+
+Paciente* no_get_paciente(const NoLista* no) {
+    if (no) {
+        return no->paciente;
+    }
+    return NULL;
+}
+
+int lista_get_tamanho(const ListaPacientes* lista) {
+    if (lista) {
+        return lista->tamanho;
+    }
+    return 0;
 }
 

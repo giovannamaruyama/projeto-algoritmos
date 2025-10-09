@@ -23,17 +23,18 @@ bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
     FILE *fp_lista = fopen("lista_pacientes.bin", "wb");
     if (!fp_lista) return false;
 
-    // conta nós
-    int n = 0;
-    for (NoLista *aux = lista->inicio; aux; aux = aux->proximo) n++;
+    // Obtem o tamanho da lista
+    int n = lista_get_tamanho(lista);
 
     // grava contagem
     fwrite(&n, sizeof(int), 1, fp_lista);
 
     // grava (id + nome com 100 bytes fixos)
-    for (NoLista *no = lista->inicio; no; no = no->proximo) {
-        int id = get_id_paciente(no->paciente);
-        const char *nome = get_nome_paciente(no->paciente);
+    for (NoLista *no = lista_get_inicio(lista); no != NULL; no = no_get_proximo(no)) {
+        Paciente *paciente_atual = no_get_paciente(no);
+
+        int id = get_id_paciente(paciente_atual);
+        const char *nome = get_nome_paciente(paciente_atual);
         char nome_fix[100] = {0};
         if (nome) strncpy(nome_fix, nome, sizeof(nome_fix) - 1);
 
@@ -67,8 +68,9 @@ bool SAVE(ListaPacientes *lista, FilaTriagem *fila, HISTORICO *historico) {
     FILE *fp_historico = fopen("historicos.bin", "wb");
     if (!fp_historico) return false;
 
-    for (NoLista *no = lista->inicio; no; no = no->proximo) {
-        HISTORICO *h = paciente_get_historico(no->paciente);
+    for (NoLista *no = lista_get_inicio(lista); no != NULL; no = no_get_proximo(no)) {
+        Paciente *paciente_atual = no_get_paciente(no);
+        HISTORICO *h = paciente_get_historico(paciente_atual);
         if (!h) continue;
 
         int tam = historico_get_tamanho(h);
@@ -141,7 +143,7 @@ bool LOAD(ListaPacientes **lista_ptr, FilaTriagem **fila_ptr, HISTORICO **histor
             HISTORICO *h = historico_criar(paciente_id, paciente_nome);
             if (!h) { fclose(fp_historico); return false; }
 
-            Paciente *paciente_na_lista = buscar_paciente_por_id(lista, paciente_id);
+            Paciente *paciente_na_lista = buscar_paciente(lista, paciente_id);
             if (paciente_na_lista) {
                 paciente_set_historico(paciente_na_lista, h);
             }
@@ -162,7 +164,7 @@ bool LOAD(ListaPacientes **lista_ptr, FilaTriagem **fila_ptr, HISTORICO **histor
         int pacientes_carregados = 0;
 
         while (fread(&chave, sizeof(int), 1, fp_fila) == 1) {
-            Paciente *paciente_completo = buscar_paciente_por_id(lista, chave);
+            Paciente *paciente_completo = buscar_paciente(lista, chave);
             if (paciente_completo) {
                 inserir_paciente_fila(fila, paciente_completo);
                 pacientes_carregados++;
