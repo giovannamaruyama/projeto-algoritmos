@@ -61,7 +61,7 @@ Paciente* obter_paciente(ListaPacientes *lista) {
     }
     limpar_buffer();
 
-    Paciente *p = buscar_paciente_por_id(lista, id_input);
+    Paciente *p = buscar_paciente(lista, id_input);
     if (p == NULL) {
         printf("Erro: Paciente com ID %d nao encontrado.\n", id_input);
     }
@@ -87,7 +87,7 @@ bool processarAcao(int acao, ListaPacientes *lista, FilaTriagem *fila) {
             }
             limpar_buffer();
             
-            Paciente *p = buscar_paciente_por_id(lista, id_input);
+            Paciente *p = buscar_paciente(lista, id_input);
 
             if (p != NULL) {
                 printf("Paciente %s (ID %d) encontrado na base de dados.\n", get_nome_paciente(p), get_id_paciente(p));
