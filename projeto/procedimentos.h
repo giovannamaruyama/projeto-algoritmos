@@ -1,0 +1,16 @@
+#ifndef PROCEDIMENTOS_H
+#define PROCEDIMENTOS_H
+
+#include <stdbool.h>
+#include <stdio.h>
+
+typedef struct procedimento_ PROCEDIMENTO;
+
+PROCEDIMENTO* procedimento_criar(const char *descricao, const char *data);
+bool procedimento_apagar(PROCEDIMENTO **p);
+const char* procedimento_get_nome(PROCEDIMENTO *p);
+const char* procedimento_get_data(PROCEDIMENTO *p);
+bool procedimento_save(FILE *fp, PROCEDIMENTO *p);
+PROCEDIMENTO* procedimento_load(FILE *fp);
+
+#endif
